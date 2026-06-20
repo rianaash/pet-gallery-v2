@@ -9,5 +9,16 @@ class Like extends Model
 {
     use HasFactory;
 
+    // Kita izinkan mass assignment untuk user_id dan photo_id
     protected $fillable = ['user_id', 'photo_id'];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function photo()
+    {
+        return $this->belongsTo(Photo::class);
+    }
 }

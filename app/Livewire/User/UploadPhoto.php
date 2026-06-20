@@ -14,6 +14,12 @@ class UploadPhoto extends Component
     use WithFileUploads;
 
     public $photo, $title, $caption, $category_id;
+
+    public function updatedPhoto()
+    {
+        $this->resetErrorBag('photo');
+    }
+
     #[Layout('layouts.app')] 
     public function render()
     {
@@ -40,7 +46,6 @@ class UploadPhoto extends Component
             'image_url' => $path,
         ]);
 
-        session()->flash('message', 'Berhasil upload!');
         return redirect()->route('dashboard');
     }
 }

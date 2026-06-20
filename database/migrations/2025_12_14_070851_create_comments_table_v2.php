@@ -11,12 +11,21 @@ return new class extends Migration
      */
     public function up(): void
 {
-    Schema::create('bookmarks', function (Blueprint $table) {
+    Schema::dropIfExists('comments'); // Jaga-jaga hapus yg lama
+
+    Schema::create('comments', function (Blueprint $table) {
         $table->id();
         $table->foreignId('user_id')->constrained()->cascadeOnDelete();
         $table->foreignId('photo_id')->constrained()->cascadeOnDelete();
+
+        // INI KUNCINYA:
+        $table->foreignId('parent_id')
+              ->nullable()              // Boleh kosong (kalau bukan balasan)
+              ->constrained('comments') // Nyambung ke tabel ini sendiri
+              ->cascadeOnDelete();      // Induk dihapus, anak ikut hilang
+
+        $table->text('content');
         $table->timestamps();
-        $table->unique(['user_id', 'photo_id']); // Satu user cuma bisa bookmark 1x per foto
     });
 }
 
@@ -25,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('bookmarks');
+        Schema::dropIfExists('comments');
     }
 };

@@ -1,72 +1,38 @@
 <?php
 
-namespace App\Livewire\Forms;
+namespace App\Livewire\Pages\Auth;
 
-use Illuminate\Auth\Events\Lockout;
+use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Livewire\Attributes\Validate;
-use Livewire\Form;
 
-class LoginForm extends Form
+class Login extends Component
 {
-    #[Validate('required|string|email')]
-    public string $email = '';
+    public $email = '';
+    public $password = '';
 
-    #[Validate('required|string')]
-    public string $password = '';
-
-    #[Validate('boolean')]
-    public bool $remember = false;
-
-    /**
-     * Attempt to authenticate the request's credentials.
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
-    public function authenticate(): void
+    // 2. Fungsi Login (Ini yang dipanggil tombol submit)
+    public function login()
     {
-        $this->ensureIsNotRateLimited();
+        // A. Validasi Input dulu
+        $this->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+        ]);
 
-        if (! Auth::attempt($this->only(['email', 'password']), $this->remember)) {
-            RateLimiter::hit($this->throttleKey());
-
+        // B. Coba Login ke Database
+        if (!Auth::attempt(['email' => $this->email, 'password' => $this->password])) {
             throw ValidationException::withMessages([
-                'form.email' => trans('auth.failed'),
+                'email' => 'Email atau kata sandi salah nih, coba cek lagi ya! 🧐',
             ]);
         }
-
-        RateLimiter::clear($this->throttleKey());
+        session()->regenerate();
+        return redirect()->route('dashboard');
     }
 
-    /**
-     * Ensure the authentication request is not rate limited.
-     */
-    protected function ensureIsNotRateLimited(): void
+    public function render()
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
-            return;
-        }
-
-        event(new Lockout(request()));
-
-        $seconds = RateLimiter::availableIn($this->throttleKey());
-
-        throw ValidationException::withMessages([
-            'form.email' => trans('auth.throttle', [
-                'seconds' => $seconds,
-                'minutes' => ceil($seconds / 60),
-            ]),
-        ]);
-    }
-
-    /**
-     * Get the authentication rate limiting throttle key.
-     */
-    protected function throttleKey(): string
-    {
-        return Str::transliterate(Str::lower($this->email).'|'.request()->ip());
+        // Pastikan ini mengarah ke file view yang tadi kamu kirim
+        return view('livewire.pages.auth.login'); 
     }
 }

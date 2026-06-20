@@ -5,7 +5,8 @@ namespace App\Livewire\Admin;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use App\Models\Category;
-use Illuminate\Support\Str; 
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule as ValidationRule;
 
 class CategoryManager extends Component
 {
@@ -61,7 +62,12 @@ class CategoryManager extends Component
     public function update()
     {
         // Cek validasi
-        $this->validate(['name' => 'required']);
+        $this->validate([
+        'name' => [
+            'required', 
+            ValidationRule::unique('categories', 'name')->ignore($this->category_id)
+        ]
+    ]);
 
         // Cari datanya lagi
         $cat = Category::find($this->category_id);

@@ -9,15 +9,16 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+    public function up(): void
 {
     Schema::create('likes', function (Blueprint $table) {
         $table->id();
-        $table->foreignId('user_id')->constrained()->onDelete('cascade');
-        $table->foreignId('photo_id')->constrained()->onDelete('cascade');
+        $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+        $table->foreignId('photo_id')->constrained()->cascadeOnDelete();
         $table->timestamps();
-        // Mencegah 1 user like foto yang sama 2 kali (Data Integrity)
-        $table->unique(['user_id', 'photo_id']);
+        
+        // Mencegah user like foto yang sama berkali-kali
+        $table->unique(['user_id', 'photo_id']); 
     });
 }
 

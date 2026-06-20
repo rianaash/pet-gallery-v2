@@ -4,71 +4,55 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Photo extends Model
 {
     use HasFactory;
 
-    // kolom yang boleh diisi
     protected $fillable = [
         'user_id',
-        'category_id',
-        'image_url',
+        'category_id', // <--- PENTING: Tambahkan ini
+        'image_url',   // Pastikan sesuai nama kolom di DB (bisa 'image' atau 'image_path')
         'title',
         'caption',
     ];
 
-    // relasi
-
-    // 1. Foto ini diupload oleh siapa?
-    public function user()
+    // Relasi ke User
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    // 2. Foto ini Kategori apa?
-    public function category()
+    // --- RELASI KATEGORI (SOLUSI ERROR ANDA) ---
+    public function category(): BelongsTo
     {
+        // Pastikan Anda punya model App\Models\Category
         return $this->belongsTo(Category::class);
     }
 
-    // 3. Foto ini punya banyak Komentar
-    public function comments()
+    // Relasi ke Komentar
+    public function comments(): HasMany
     {
-        return $this->hasMany(Comment::class)->latest(); 
+        return $this->hasMany(Comment::class);
     }
 
-    // 4. Foto ini punya banyak Like
-    public function likes()
+    // Relasi ke Likes
+    public function likes(): HasMany
     {
         return $this->hasMany(Like::class);
     }
 
-    // 5. Foto ini punya banyak Bookmark
+    // Helper: Cek Like
+    public function isLikedBy($user): bool
+    {
+        if (!$user) return false;
+        return $this->likes()->where('user_id', $user->id)->exists();
+    }
+
     public function bookmarks()
-    {
-        return $this->hasMany(Bookmark::class);
-    }
-
-
-
-    // Cek apakah user yang login sudah like foto ini?
-    public function isLikedByAuthUser()
-    {
-        if (!Auth::check()) {
-            return false;
-        }
-        return $this->likes()->where('user_id', Auth::id())->exists();
-    }
-
-    // Cek apakah user yang login sudah BOOKMARK foto ini?
-    public function isBookmarked()
-    {
-        if (!Auth::check()) {
-            return false;
-        }
-        // Cek di tabel bookmarks apakah user ini menyimpan foto ini
-        return $this->bookmarks()->where('user_id', Auth::id())->exists();
-    }
+{
+    return $this->hasMany(Bookmark::class);
+}
 }
